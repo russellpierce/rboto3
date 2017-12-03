@@ -1,0 +1,10 @@
+title: rboto3
+authors:
+  Russell S. Pierce:
+    href: https://www.github.com/russellpierce/
+
+template:
+  package: pkgdown.bvk
+  params:
+    bootswatch: yeti
+
