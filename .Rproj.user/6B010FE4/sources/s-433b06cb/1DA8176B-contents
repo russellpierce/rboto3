@@ -1,5 +1,0 @@
-images:
-  - name: "base"
-    tags:
-      - "latest"
-      - "v2.0.2"
