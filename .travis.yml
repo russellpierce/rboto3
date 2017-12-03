@@ -3,3 +3,19 @@
 language: R
 sudo: false
 cache: packages
+
+#matrix: 3x Linux, 1x OS X
+matrix:
+  include:
+  - r: release
+  - r: oldrel
+  - r: devel
+  - os: osx
+    r: release
+    latex: false
+
+r_github_packages:
+  - jimhester/covr
+
+after_success:
+  - Rscript -e 'covr::codecov()'
