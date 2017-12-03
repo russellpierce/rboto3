@@ -13,77 +13,73 @@ knitr::opts_chunk$set(
 ```
 
 ```{r, echo = FALSE}
-description <- readLines(system.file("DESCRIPTION", package='docker'))
+description <- readLines(system.file("DESCRIPTION", package='rboto3'))
 rvers <- stringr::str_match(grep("R \\(", description, value = TRUE), "[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,4}")[1,1]
 version <- gsub(" ", "", gsub("Version:", "", grep("Version:", description, value = TRUE)))
 ```
 
-[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active) [![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-green.svg)](/commits/master) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![keybase verified](https://img.shields.io/badge/keybase-verified-brightgreen.svg)](https://gist.github.com/bhaskarvk/46fbf2ba7b5713151d7e) 
-[![Travis-CI Build Status](https://travis-ci.org/bhaskarvk/docker.svg?branch=master)](https://travis-ci.org/bhaskarvk/docker) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/bhaskarvk/docker?branch=master&svg=true)](https://ci.appveyor.com/project/bhaskarvk/docker) [![minimal R version](https://img.shields.io/badge/R%3E%3D-`r rvers`-6666ff.svg)](https://cran.r-project.org/) [![packageversion](https://img.shields.io/badge/Package%20version-`r version`-orange.svg?style=flat-square)](commits/master) [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/docker)](https://cran.r-project.org/package=docker) [![](http://cranlogs.r-pkg.org/badges/grand-total/docker)](http://cran.rstudio.com/web/packages/docker/index.html)
+[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public..](http://www.repostatus.org/badges/latest/wip.svg)](http://www.repostatus.org/) [![Last-changedate](https://img.shields.io/badge/last%20change-`r gsub('-', '--', Sys.Date())`-green.svg)](/commits/prod) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Travis-CI Build Status](https://travis-ci.org/russellpierce/rboto3.svg?branch=prod)](https://travis-ci.org/russellpierce/rboto3)
+ [![packageversion](https://img.shields.io/badge/Package%20version-`r version`-orange.svg?style=flat-square)](commits/prod) [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/rboto3)](https://cran.r-project.org/package=rboto3) [![](http://cranlogs.r-pkg.org/badges/grand-total/rboto3)](http://cran.rstudio.com/web/packages/rboto3/index.html)
 
-# `docker`: An R Package for Docker
+# `rboto3`: An R Package for Amazon Web Services (AWS)
 
-The `docker` R package provides access to the [docker](https://www.docker.com/) [API](https://docs.docker.com/engine/api/) to programmatically control a docker engine from R. The docker engine could be running either locally or remotely. The `docker` package uses the [reticulate](https://rstudio.github.io/reticulate/) R package to invoke the [Python SDK](https://docker-py.readthedocs.io/en/stable/) for docker. Using the Python SDK allows the `docker` package to have a very minimal foot-print and yet allow complete docker API access. The package has been tested against docker engine running on [Linux](https://www.docker.com/docker-ubuntu) and [Microsoft Windows](https://www.docker.com/docker-windows) and should also work under [MacOS](https://www.docker.com/docker-mac).
+The `rboto3` R package provides access to the Amazon Web Services (AWS) [boto3](http://boto3.readthedocs.io/en/latest/) SDK for Python from R via [package::reticulate](https://rstudio.github.io/reticulate/). Using the Python SDK allows the `rboto3` package to have a very minimal foot-print and yet allow complete AWS API access.
 
-Controlling a docker engine from withing R can be useful for ...
+## Why should I use it?
 
-- Writing automated unit/integration tests for R packages against running services in docker containers. The package author can start a docker container, execute the tests, and tear the container down, all from withing the R code of the test.
-- Another use case is easy access to containerized services as part of a researchers reproducible research workflow. Having access to a containerized service ensures that the research code executes identically regardless of where it's run.
+Amazon does not provide an offical SDK for R.  If you've searched around a bit, you will have noticed that the landscape is littered with R packages for Amazon Web Services (AWS) no longer in development or that are incomplete.  In my opinion, the dead packages are most often dead because they've depended on lower level interfaces from Amazon that Amazon was free to change one way or another.  In contrast...
 
+> [Boto 3] uses a data-driven approach to generate classes at runtime from JSON description files that are shared between SDKs in various languages. This includes descriptions for a high level, object oriented interface. Because Boto 3 is generated from these shared JSON files, we get fast updates to the latest services and features and a consistent API across services. Community contributions to JSON description files in other SDKs also benefit Boto 3, just as contributions to Boto 3 benefit the other SDKs.
 
-## Installation
+The incomplete packages are frequently incomplete because they've targeted Amazon's web API or other low-level interface and been forced to write each feature step-by-step.  By importing Boto 3 directly into R via `{reticulate}` we gain immediate access to all higher-level interfaces AWS has to offer and reduce the support burden on the R community to keep up with Amazon's changes.  Although any language's SDK would have been suitable as a target this package has selected Python because it is similar to R in some respects and many users of R also have familarity with Python.  
 
-Release version
+## How do I use it?
 
-```{r cran, eval=FALSE}
-install.packages('docker')
+Before you can use this package you need to have Python 2.x (>=2.7) or Python 3.x (>=3.4).  You can then follow the Boto 3 [Quickstart](http://boto3.readthedocs.io/en/latest/guide/quickstart.html) guide to do your system configuration.
+
+For an example usage from R, I'll parallel the example provided by Boto 3.
+
+To use `{rboto3}` you must first tell it what service you are going to use and attach `{reticulate}` to gain the ability to easily interact with Python objects from R.
+
+``` r
+library(reticulate)
+library(rboto3)
+
+s3 <- boto3$resource('s3')
 ```
 
-OR development version
+You'll notice that in places where the Python code uses a `.`, we use a `$` inside of R to access methods contained within boto3.  Now that you have an s3 resource, you can do things with it, like print all of your bucket names:
 
-```{r github, eval=FALSE}
-if(!require(devtools)) {
-  install.packages("devtools")
-}
-devtools::install_github('bhaskarvk/docker')
+``` r
+lapply(reticulate::iter_next(s3$buckets$pages()), function(bucket) {print(bucket$name)})
 ```
 
-## Setup
+As the above example shows, an understanding of R, reticulate, and Python is useful.  However, you can borrow Python code directly and run it directly via reticulate if you get stuck...
 
-Before you can use this package you need to have Python  2.x (>=2.7) or Python 3.x (>=3.4) with the [docker](https://docker-py.readthedocs.io/en/stable/index.html) Python module which provides Python SDK for docker. A simple way to do this is using a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/). [virtualenvwrapper](http://docs.python-guide.org/en/latest/dev/virtualenvs/#virtualenvwrapper) makes setting up Python modules quite painless.
+``` r
+reticulate::py_run_string(as.character(quote(`
+import boto3
+s3 = boto3.resource('s3')
+for bucket in s3.buckets.all():
+    print(bucket.name)
+`)))
+```
 
-Once you have installed Python and setup `virtualenvwrapper` you need to create a new virtual environment and install the `docker` Python module in it.
+## Advanced Installation
+
+If you need to keep your R Python environment seperate from the rest of your environment consider a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/). [virtualenvwrapper](http://docs.python-guide.org/en/latest/dev/virtualenvs/#virtualenvwrapper) makes setting up Python modules quite painless.
+
+Once you have installed Python and setup `virtualenvwrapper` you need to create a new virtual environment and install the `boto3` Python module in it.
 
 ```bash
-mkvirtualenv --python=/usr/bin/python3 docker
-workon docker
-pip install docker
-
-# Test the SDK againsts a locally running docker
-# You should have a locally running docker for this.
-python -c 'import docker; print(docker.from_env().version())'
+mkvirtualenv --python=/usr/bin/python3 boto3
+workon boto3
+pip install boto3
 ```
 
-You should see something like below, provided you had a locally running docker engine.
-
+``` r 
+reticulate::use_virtualenv("boto3")
+library(rboto3)
+boto3$`__version__`
 ```
-{'Os': 'linux', 'Arch': 'amd64', 'KernelVersion': '4.10.0-24-generic', 'GitCommit': '02c1d87', 'Version': '17.06.0-ce', 'BuildTime': '2017-06-23T21:19:04.990631145+00:00', 'MinAPIVersion': '1.12', 'GoVersion': 'go1.8.3', 'ApiVersion': '1.30'}
-```
-
-## Example
-
-```{r hello-world}
-reticulate::use_virtualenv("docker")
-library(docker)
-client <- docker$from_env()
-s <- client$containers$run("alpine", 'echo -n "Hello World!"', remove=TRUE)
-print(s$decode("UTF-8"))
-```
-
-## Usage
-
-After you have a successful 'Hellow World!' displayed above, you can call every API supported by the Python SDK using reticulate. Please consult the documents for the SDK and the reticulate R package in the links given above.
-
-## Code of Conduct
-Please note that this project is released with a [Contributor Code of Conduct](CONDUCT.md). By participating in this project you agree to abide by its terms.
-
