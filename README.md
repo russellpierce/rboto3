@@ -9,11 +9,11 @@ The `rboto3` R package provides access to the Amazon Web Services (AWS) [boto3](
 Why should I use it?
 --------------------
 
-Amazon does not provide an offical SDK for R. If you've searched around a bit, you'll have noticed that the landscape is littered with R packages for Amazon Web Services (AWS) no longer in development or that are incomplete. In my opinion, the dead packages are most often dead because they've depended on lower level interfaces from Amazon that Amazon was free to change one way or another. In contrast...
+Amazon does not provide an official SDK for R. If you've searched around a bit, you will have noticed that the landscape is littered with R packages for Amazon Web Services (AWS) no longer in development or that are incomplete. In my opinion, the dead packages are most often dead because they've depended on lower level interfaces from Amazon that Amazon was free to change one way or another. In contrast...
 
 > \[Boto 3\] uses a data-driven approach to generate classes at runtime from JSON description files that are shared between SDKs in various languages. This includes descriptions for a high level, object oriented interface. Because Boto 3 is generated from these shared JSON files, we get fast updates to the latest services and features and a consistent API across services. Community contributions to JSON description files in other SDKs also benefit Boto 3, just as contributions to Boto 3 benefit the other SDKs.
 
-The incomplete packages are frequently incomplete because they've targeted Amazon's web API or other low-level interface and been forced to write each feature step-by-step. By importing Boto 3 directly into R via {reticulate} we gain immediate access to all higher-level interfaces AWS has to offer and reduce the support burden on the R community to keep up with Amazon's changes. Although any language's SDK would have been suitable as a target this package has selected Python because it is similar to R in some respects and many users of R also have familarity with Python.
+The incomplete packages are frequently incomplete because they've targeted Amazon's web API or other low-level interface and been forced to write each feature step-by-step. By importing Boto 3 directly into R via `{reticulate}` we gain immediate access to all higher-level interfaces AWS has to offer and reduce the support burden on the R community to keep up with Amazon's changes. Although any language's SDK would have been suitable as a target this package has selected Python because it is similar to R in some respects and many users of R also have familiarity with Python.
 
 How do I use it?
 ----------------
@@ -33,16 +33,25 @@ s3 <- boto3$resource('s3')
 
 You'll notice that in places where the Python code uses a `.`, we use a `$` inside of R to access methods contained within boto3. Now that you have an s3 resource, you can do things with it, like print all of your bucket names:
 
-How do I use it?
-----------------
+``` r
+lapply(reticulate::iter_next(s3$buckets$pages()), function(bucket) {print(bucket$name)})
+```
 
-### Installation
+As the above example shows, an understanding of R, reticulate, and Python is useful. However, you can borrow Python code directly and run it directly via reticulate if you get stuck...
 
-For usage examples,
+``` r
+reticulate::py_run_string(as.character(quote(`
+import boto3
+s3 = boto3.resource('s3')
+for bucket in s3.buckets.all():
+    print(bucket.name)
+`)))
+```
 
-### Advanced Installation
+Advanced Installation
+---------------------
 
-If you need to keep your R Python environment seperate from the rest of your environment consider a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/). [virtualenvwrapper](http://docs.python-guide.org/en/latest/dev/virtualenvs/#virtualenvwrapper) makes setting up Python modules quite painless.
+If you need to keep your R Python environment separate from the rest of your environment consider a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/). [virtualenvwrapper](http://docs.python-guide.org/en/latest/dev/virtualenvs/#virtualenvwrapper) makes setting up Python modules quite painless.
 
 Once you have installed Python and setup `virtualenvwrapper` you need to create a new virtual environment and install the `boto3` Python module in it.
 
@@ -55,5 +64,10 @@ pip install boto3
 ``` r
 reticulate::use_virtualenv("boto3")
 library(rboto3)
-client <- boto3$`__version__`
+boto3$`__version__`
 ```
+
+Acknowledgements
+----------------
+
+-   Bhaska Karambelkar for `{docker}` which I adapted for this project.
